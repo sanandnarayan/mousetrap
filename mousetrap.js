@@ -570,7 +570,7 @@
      * @param {string=} action
      * @returns void
      */
-    function _bindSequence(combo, keys, callback, action) {
+    function _bindSequence(combo, keys, callback, action, specialCallback) {
 
         // start off by adding a sequence level record for this combination
         // and setting the level to 0
@@ -592,6 +592,7 @@
         var _increaseSequence = function(e) {
                 _inside_sequence = action;
                 ++_sequence_levels[combo];
+                specialCallback(_sequence_levels[combo]);
                 _resetSequenceTimer();
             },
 
@@ -636,7 +637,7 @@
      * @param {number=} level - what part of the sequence the command is
      * @returns void
      */
-    function _bindSingle(combination, callback, action, sequence_name, level) {
+    function _bindSingle(combination, callback, action, sequence_name, level, specialCallback) {
 
         // make sure multiple spaces in a row become a single space
         combination = combination.replace(/\s+/g, ' ');
@@ -650,7 +651,7 @@
         // if this pattern is a sequence of keys then run through this method
         // to reprocess each pattern one key at a time
         if (sequence.length > 1) {
-            return _bindSequence(combination, sequence, callback, action);
+            return _bindSequence(combination, sequence, callback, action, specialCallback);
         }
 
         // take the keys from this pattern and figure out what the actual
@@ -716,9 +717,9 @@
      * @param {string|undefined} action
      * @returns void
      */
-    function _bindMultiple(combinations, callback, action) {
+    function _bindMultiple(combinations, callback, action, specialCallback) {
         for (var i = 0; i < combinations.length; ++i) {
-            _bindSingle(combinations[i], callback, action);
+            _bindSingle(combinations[i], callback, action, null, null, specialCallback);
         }
     }
 
@@ -743,8 +744,8 @@
          * @param {string=} action - 'keypress', 'keydown', or 'keyup'
          * @returns void
          */
-        bind: function(keys, callback, action) {
-            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action);
+        bind: function(keys, callback, action, specialCallback) {
+            _bindMultiple(keys instanceof Array ? keys : [keys], callback, action, specialCallback);
             _direct_map[keys + ':' + action] = callback;
             return this;
         },
